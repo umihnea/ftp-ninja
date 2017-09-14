@@ -28,34 +28,45 @@ def crawlFtp(ftp, path, numFolders, numFiles):
 			if isFile(ftp, fields[8]) == True:
 				text = "File "
 				text += fields[8]
+
 				logging.debug(text)
+
 				numFiles += 1
 			else:
 				text = "Folder "
 				text += fields[8]
+
 				logging.debug(text)
+
 				folders.append(fields[8])
 				numFolders += 1
 		for folder in folders:
+
 			logging.debug("Entering folder \t" + folder)
+
 			crawlFtp(ftp, Path(path, folder), numFolders, numFiles)
 	except Exception:
 		pass
 
+#@click.command()
+#@click.option('--host', help='Host to index.')
 def main():
-	#@click.command()
-	#@click.option('--host', help='Host to index.')
-	logging.basicConfig(filename='log.log', filemode='w', format="%(levelname)s|%(asctime)s|%(message)s")
+	logging.basicConfig(filename='log.log',level=logging.DEBUG, format="%(levelname)s|%(asctime)s|%(message)s")
+	# logging.basicConfig(filename='log.log', filemode='w', format="%(levelname)s|%(asctime)s|%(message)s")
+
 	logging.info("Starting crawling")
+
 	numFolders = 0
 	numFiles = 0
 	path = Path('/')
 	level = 1
 	ftp = ftplib.FTP('ftp.astral.ro')
 	ftp.login()
+
 	crawlFtp(ftp, path, numFolders, numFiles)
-	logging.info("Folders: " + numFolders)
-	logging.info("Files: " + numFiles)
+
+	logging.info("Folders: " + str(numFolders))
+	logging.info("Files: " + str(numFiles))
 		
 	logging.info("Job done!")
 	ftp.quit()
