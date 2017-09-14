@@ -7,6 +7,7 @@ import random
 import logging
 import datetime
 from pathlib import Path
+import click
 
 def isFile(ftp, filename):
 	try:
@@ -27,21 +28,25 @@ def crawlFtp(ftp, path, numFolders, numFiles):
 			if isFile(ftp, fields[8]) == True:
 				text = "File "
 				text += fields[8]
-				print text
+				logging.debug(text)
 				numFiles += 1
 			else:
 				text = "Folder "
 				text += fields[8]
-				print text
+				logging.debug(text)
 				folders.append(fields[8])
 				numFolders += 1
 		for folder in folders:
-			print "Entering folder \t" + folder
+			logging.debug("Entering folder \t" + folder)
 			crawlFtp(ftp, Path(path, folder), numFolders, numFiles)
 	except Exception:
 		pass
 
 def main():
+	#@click.command()
+	#@click.option('--host', help='Host to index.')
+	logging.basicConfig(filename='log.log', filemode='w', format="%(levelname)s|%(asctime)s|%(message)s")
+	logging.info("Starting crawling")
 	numFolders = 0
 	numFiles = 0
 	path = Path('/')
@@ -49,10 +54,10 @@ def main():
 	ftp = ftplib.FTP('ftp.astral.ro')
 	ftp.login()
 	crawlFtp(ftp, path, numFolders, numFiles)
-	print "Folders: " + numFolders
-	print "Files: " + numFiles
+	logging.info("Folders: " + numFolders)
+	logging.info("Files: " + numFiles)
 		
-	print "Job done!"
+	logging.info("Job done!")
 	ftp.quit()
 
 
