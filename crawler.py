@@ -48,24 +48,25 @@ def crawlFtp(ftp, path, conn):
 		folders = []
 		for line in lines:
 			fields = line.split()
-			if isFile(ftp, fields[8]) == True:
-				indexerDB(ftp.host, fields[8], str(path), conn)
-				logging.debug("File " + fields[8])
+			name = ' '.join(fields[8:])
+			if isFile(ftp, name) == True:
+				indexerDB(ftp.host, name, str(path), conn)
+				logging.debug("File " + name)
 
 			else:
-				name = fields[8].replace("/", "")
+				name = name.replace("/", "")
 				folders.append(name)
-				logging.debug("Folder " + fields[8])
+				logging.debug("Folder " + name)
 
 		for folder in folders:
 			logging.debug("Entering folder \t" + folder)
-			crawlFtp(ftp, Path(path, folder), conn)
+			#crawlFtp(ftp, Path(path, folder), conn)
 
 	except Exception as e:
 		logging.error(e, exc_info=True)
 
 def main():
-	path = Path('/')
+	path = Path('/users/lfiorentino/Books/')
 	conn = dbConn()
 	with open('log.log', 'w'):
 		pass
