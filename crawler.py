@@ -61,7 +61,6 @@ def crawlFtp(ftp, path, conn, q):
 				name = name.replace("/", "")
 				#Folders will be pushed into the queue
 				q.put(Path(path, name))
-				folders.append(name)
 				logging.debug("Folder " + name)
 	except Exception as e:
 		logging.error(e, exc_info=True)
@@ -70,7 +69,7 @@ def crawlFtp(ftp, path, conn, q):
 @click.option('--host', prompt='Host', help='FTP server host ip/address')
 @click.option('--path', prompt='Path', default='/', help='Enter the path to index')
 @click.option('--workers', prompt='Workers', default=4, help='Enter the number of workers')
-def worker(path, host, workers):
+def worker(host, path, workers):
 	#Clearing log file
 	with open('log.log', 'w'):
 		pass
