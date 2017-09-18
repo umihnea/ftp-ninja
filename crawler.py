@@ -1,7 +1,6 @@
 import os
 import sys
 import time
-import json
 import ftplib
 import random
 import logging
@@ -10,10 +9,11 @@ from pathlib import Path
 import click
 import sqlite3
 import random
+import multiprocessing
 
 #Connection to the ftp host
 def ftpConn(host):
-	host = 'firl.rsmas.miami.edu'
+	#host = 'firl.rsmas.miami.edu'
 	ftp = ftplib.FTP(host)
 	ftp.login()
 	return ftp
@@ -42,15 +42,14 @@ def isFile(ftp, filename):
 	except:
 		return False
 
-#Main code here, it's recursive and it crawls all the folders in a path
-def crawlFtp(ftp, path, conn):
+#Gets a list with all files&folders inside the current path
+def crawlFtp(ftp, path, conn, q):
+	logging.debug("Entering folder \t\t\t" + str(path))
 	#Lines stores all the data from ftp.dir()
 	lines = []
 	try:
 		ftp.cwd(str(path))
 		ftp.dir(str(path), lines.append)
-		#Folders stores all the folders for the recursive call
-		folders = []
 		for line in lines:
 			fields = line.split()
 			#Combining fileds for the files/folders that are using spaces in their name
@@ -60,20 +59,18 @@ def crawlFtp(ftp, path, conn):
 				logging.debug("File " + name)
 			else:
 				name = name.replace("/", "")
+				#Folders will be pushed into the queue
+				q.put(Path(path, name))
 				folders.append(name)
 				logging.debug("Folder " + name)
-
-		for folder in folders:
-			logging.debug("Entering folder \t" + folder)
-			crawlFtp(ftp, Path(path, folder), conn)
-
 	except Exception as e:
 		logging.error(e, exc_info=True)
 
 @click.command()
 @click.option('--host', prompt='Host', help='FTP server host ip/address')
 @click.option('--path', prompt='Path', default='/', help='Enter the path to index')
-def worker(path, host):
+@click.option('--workers', prompt='Workers', default=4, help='Enter the number of workers')
+def worker(path, host, workers):
 	#Clearing log file
 	with open('log.log', 'w'):
 		pass
@@ -82,22 +79,49 @@ def worker(path, host):
 	logging.basicConfig(filename='log.log',level=logging.DEBUG, format="%(levelname)s|%(asctime)s|%(message)s")
 	logging.info("Starting crawling")
 
-	#Connecting to the ftp server
-	ftp = ftpConn(host)
+	ftp = []
+	#Initializing a separate connection for each worker
+	for i in range(0, workers):
+		ftp.append(ftpConn(host))
 
 	#Connecting to the db
 	conn = dbConn()
 
-	#Initializing crawler
-	crawlFtp(ftp, path, conn)
+	#Initializing the pool of processes
+	pool = multiprocessing.Pool(processes=workers)
+
+	#Initializing multiprocessing queue for better synchronization
+	m = multiprocessing.Manager()
+	q = m.Queue()
+
+	#Finding first folders
+	crawlFtp(ftp[0], path, conn, q)
+
+	#Start workers for every folder inside queue
+	while not q.empty():
+		#Defining jobs
+		jobs = []
+		for i in range(0, workers):
+			process = multiprocessing.Process(target=crawlFtp, args=(ftp[i], Path(path, str(q.get())), conn, q))
+			jobs.append(process)
+
+		# Starting the processes	
+		for j in jobs:
+			j.start()
+
+		# Making sure all processes have finished work
+		for j in jobs:
+			j.join()
+
 
 	#Last commit to the db
 	conn.commit()
 	logging.info("Last commit to db")
 	logging.info("Job done!")
 
-	#Killing the connection to the ftp
-	ftp.quit()
+	#Killing all connections to the ftp server
+	for ftpServer in ftp:
+		ftpServer.quit()
 
 if __name__ == '__main__':
     worker()
