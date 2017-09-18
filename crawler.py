@@ -14,9 +14,9 @@ def main(host, port, workers):
 	"""
 	ftp-ninja
 
-	Performs a simple Breath First Search to index a FTP server.
+	Performs a simple tree search to index a FTP server.
 
-	- There are no database wrappers for simplicity.
+	- There are no database wrappers.
 	- The Logger always picks a random color.
 
 	Tested on a self-hosted pyftpdlib server and configured for its defaults.
