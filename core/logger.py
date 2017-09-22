@@ -2,10 +2,9 @@ from colorama import Fore, Back, Style, init
 from random import choice
 import datetime
 
-
 class Logger():
 
-	def __init__(self, log_file):
+	def __init__(self, log_file="log.log"):
 		init()
 		self.color = self.choose_color()
 		self.log_file = self.create_file(log_file)
@@ -17,7 +16,7 @@ class Logger():
 		timestamp = self.get_timestamp()
 
 		self.console_log(self.color, message)
-		self.file_log("[" + timestamp + "]: " + message)
+		#self.file_log("[" + timestamp + "]: " + message)
 
 	def error(self, message):
 		timestamp = self.get_timestamp()

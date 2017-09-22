@@ -14,12 +14,6 @@ def main(host, port, workers):
 	"""
 	ftp-ninja
 
-	Performs a simple tree search to index a FTP server.
-
-	- There are no database wrappers.
-	- The Logger always picks a random color.
-
-	Tested on a self-hosted pyftpdlib server and configured for its defaults.
 	"""
 
 	lg = Logger("log.log")
@@ -27,27 +21,34 @@ def main(host, port, workers):
 	
 	lg.log("Ready.")
 
-	start_nodes = x.get_files()
-	bfs_queue = deque([])
+	search_queue = deque([])
 
-	for node in start_nodes:
-		if x.is_file(node):
-			lg.log(node + " is a file.")
-		else:
-			lg.log(node + " is a folder.")
-			bfs_queue.append(node)
+	"""
+	T O D O
 
-	while len(bfs_queue):
-		current = bfs_queue.popleft()
-		if x.is_file(current):
-			lg.log(current + " is a file.")
-		else:
-			lg.log(current + " is a folder.")
+	>screw ftp and map a directory from disk using _the os module_ in ninja.py
+	>use a queue and a worker
+		>read the full docs
+	>using that implementation...
+		>rewrite Indexer in order to act as an API for the FTP similar to _os
 
-			nodes = []
-			nodes = x.get_files(current)
-			for node in nodes:
-				bfs_queue.append(current + "/" + node)
+	"""
+
+	for each in x.get_files():
+		lg.log(each + " is a file.")
+
+	for each in x.get_dirs():
+		search_queue.append(each)
+
+	while len(search_queue):
+		current = search_queue.popleft()
+		lg.log(current + " is a directory.")
+
+		for each in x.get_files(current + "/"):
+			lg.log(each + " is a file.")
+
+		for each in x.get_dirs(current + "/"):
+			search_queue.append(current + "/" + each)
 
 	lg.log("Operation successful.")
 
