@@ -23,16 +23,6 @@ def main(host, port, workers):
 
 	search_queue = deque([])
 
-	"""
-	T O D O
-
-	>screw ftp and map a directory from disk using _the os module_ in ninja.py
-	>use a queue and a worker
-		>read the full docs
-	>using that implementation...
-		>rewrite Indexer in order to act as an API for the FTP similar to _os
-
-	"""
 
 	for each in x.get_files():
 		lg.log(each + " is a file.")

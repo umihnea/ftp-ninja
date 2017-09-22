@@ -64,7 +64,7 @@ def main():
 	ftp-ninja
 
 	"""
-	host = "ftp.rsmas.miami.edu"
+	host = "0.0.0.0"
 	port = 21
 	consumer_count = mp.cpu_count() * 2
 
